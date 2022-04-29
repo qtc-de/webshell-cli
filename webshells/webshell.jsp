@@ -114,7 +114,7 @@ try {
     process(out, request, response);
 
 } catch (IOException e) {
-    response.setStatus(500);
+    response.setStatus(201);
     out.print("Caught unexpected " + e.getClass().getName() + ": " + e.getMessage());
 }
 %>

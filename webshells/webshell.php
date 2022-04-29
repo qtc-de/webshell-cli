@@ -47,7 +47,12 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
             if (is_dir($file_name))
                 $file_name .= DIRECTORY_SEPARATOR . base64_decode($_POST['b64_orig']);
 
-            file_put_contents($file_name, $file_content);
+            if (!file_put_contents($file_name, $file_content)) {
+                echo "Error: Unable to write data to $file_name";
+                http_response_code(201);
+                exit();
+            }
+
             break;
 
         case 'download':

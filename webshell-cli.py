@@ -121,15 +121,18 @@ def print_help() -> None:
         None
     '''
     offset = 30
+
     print('usage:')
     print('')
     print('    <cmd>'.ljust(offset), 'execute the specified command')
     print('    cd <dir>'.ljust(offset), 'change the current working directory')
     print('    !background <cmd>'.ljust(offset), 'execute the specified command in the background')
-    print('    !download <rfile> <lfile>'.ljust(offset), 'download a remote file from the server')
-    print('    !upload <lfile> <rfile>'.ljust(offset), 'upload a local file to the server')
+    print('    !download <rfile> [<lfile>]'.ljust(offset), 'download a remote file from the server')
+    print('    !upload <lfile> [<rfile>]'.ljust(offset), 'upload a local file to the server')
+    print('    !get <rfile> [<lfile>]'.ljust(offset), 'alias for download')
+    print('    !put <lfile> [<rfile>]'.ljust(offset), 'alias for upload')
     print('    !eval <lfile>'.ljust(offset), 'evaluate a local file on the server (only when php)')
-    print('    !env <var>=<val>'.ljust(offset), 'set an environment variable')
+    print('    !env [<var>=<val>]'.ljust(offset), 'set an environment variable')
     print('    !help'.ljust(offset), 'show this help menu')
 
 
@@ -418,8 +421,9 @@ class Webshell:
 
     def upload_file(self, cmd: str) -> str:
         '''
-        Expects command to be of the form '!upload <lfile> <rfile> and uploads
-        <lfile> to <rfile> on the server.
+        Expects command to be of the form '!upload|put <lfile> [<rfile>]' and uploads
+        <lfile> to <rfile> on the server. If <rfile> was not specified, the original
+        filename is kept and the file is uploaded to the current working directory.
 
         Parameters:
             cmd         File upload command
@@ -427,8 +431,8 @@ class Webshell:
         Returns:
             result      Success or Failure
         '''
-        if not cmd.startswith('!upload'):
-            raise InternalError('upload_file was called despite !upload not used.')
+        if not (cmd.startswith('!upload') or cmd.startswith('!put')):
+            raise InternalError('upload_file was called despite neither !upload nor !put was used.')
 
         try:
             (lfile, rfile) = self.get_files(cmd, pathlib.Path, self.path_func)
@@ -459,8 +463,9 @@ class Webshell:
 
     def download_file(self, cmd: str) -> str:
         '''
-        Expects command to be of the form '!download <rfile> <lfile> and downloads
-        <rfile> to <lfile> on the local system.
+        Expects command to be of the form '!download|get <rfile> [<lfile>]' and downloads
+        <rfile> to <lfile> on the local system. If <lfile> was not specified, the original
+        filename is kept and the file is downloaded to the current working directory.
 
         Parameters:
             cmd         File download command
@@ -468,8 +473,8 @@ class Webshell:
         Returns:
             result      Success or Failure
         '''
-        if not cmd.startswith('!download'):
-            raise InternalError('download_file was called despite !download not used.')
+        if not (cmd.startswith('!download') or cmd.startswith('!get')):
+            raise InternalError('download_file was called despite neither !download nor !get was used.')
 
         try:
             (rfile, lfile) = self.get_files(cmd, self.path_func, pathlib.Path)
@@ -667,10 +672,10 @@ class Webshell:
         elif cmd.startswith('!eval'):
             return self.eval(cmd)
 
-        elif cmd.startswith('!upload'):
+        elif cmd.startswith('!upload') or cmd.startswith('!put'):
             return self.upload_file(cmd)
 
-        elif cmd.startswith('!download'):
+        elif cmd.startswith('!download') or cmd.startswith('!get'):
             return self.download_file(cmd)
 
         elif cmd.startswith('!background'):

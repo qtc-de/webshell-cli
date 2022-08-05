@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.1.0] - XXX YY, ZZZ
+
+### Changed
+
+* *webshell-cli* now uses patterns to detect webshell output within of server responses.
+  This is useful, when you have to embed the webshell into other content (e.g. a *JPEG* file).
+
+### Checksums (SHA256):
+
+* `webshell.php`: ``
+* `webshell.jsp`: ``
+* `webshell.aspx`: ``
+* `webshell-cli.py`: ``
+
+
 ## [1.0.0] - Apr 29, 2022
 
 ### Initial Release

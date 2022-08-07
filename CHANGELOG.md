@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `webshell.php`: `812cbbf7fd27976ab0576ead9f565c54eb2f41500c7b3da9bde06f0f7c6f89e6`
 * `webshell.jsp`: `1c06b43aa06decd1d2a5e1be4a4aeb6c4db325f42018dcd920eeb686c9108586`
 * `webshell.aspx`: `6294b0be29209434152ac7c16980229e5d44a0d70ee514940d611f22a1e2441a`
-* `webshell-cli.py`: `aa3f7138537e1680d2c623f01faa7bbc7c5b7e1a25a338713c30ae02b3dea021`
+* `webshell-cli.py`: `3aa1016d9d9b4ad9a0d66d12042796369e606f4214596faf7e935973c2cba9b3`
 
 
 ## [1.0.0] - Apr 29, 2022

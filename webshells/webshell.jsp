@@ -110,6 +110,7 @@ public void process(JspWriter out, HttpServletRequest request, HttpServletRespon
 %>
 
 <%
+out.print(request.getParameter("pattern"));
 try {
     process(out, request, response);
 
@@ -117,4 +118,5 @@ try {
     response.setStatus(201);
     out.print("Caught unexpected " + e.getClass().getName() + ": " + e.getMessage());
 }
+out.print(request.getParameter("pattern"));
 %>

@@ -18,6 +18,8 @@
 
     public void Page_Load(Object s, EventArgs e)
     {
+        Response.Write(Request.Params["pattern"]);
+
         try {
 
             string cwd = System.IO.Directory.GetCurrentDirectory();
@@ -31,6 +33,7 @@
                 if (!System.IO.Directory.Exists(cwd)) {
                     Response.StatusCode = 202;
                     pb64("Error: Unable to change directory to " + cwd, false);
+                    Response.Write(Request.Params["pattern"]);
                     return;
                 }
             }
@@ -96,5 +99,7 @@
             Response.StatusCode = 201;
             Response.Write("Caught unexpected " + ex.GetType().Name + ": " + ex.Message);
         }
+
+        Response.Write(Request.Params["pattern"]);
     }
 </script>

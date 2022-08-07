@@ -756,7 +756,7 @@ class Webshell:
 
 history = str(pathlib.Path.home().joinpath('.webshell_cli_history'))
 
-parser = argparse.ArgumentParser(description='''webshell-cli v1.0.0 - A simple command line interface for webshells''')
+parser = argparse.ArgumentParser(description='''webshell-cli v1.1.0 - A simple command line interface for webshells''')
 parser.add_argument('url', help='url of the webshell')
 parser.add_argument('-m', '--memory', action='store_true', help='use InMemoryHistory instead of FileHistory')
 parser.add_argument('-f', '--file-history', metavar='file', default=history, help=f'history file (default: {history})')

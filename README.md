@@ -10,7 +10,7 @@ variables and allows easy uploads and downloads of files.
 ![](https://github.com/qtc-de/webshell-cli/workflows/develop%20Python%20CI/badge.svg?branch=develop)
 [![](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/qtc-de/webshell-cli/releases)
 ![](https://img.shields.io/badge/python-9%2b-blue)
-[![](https://img.shields.io/badge/license-GPL%20v3.0-blue)](https://github.com/qtc-de/container-arsenal/blob/master/LICENSE)
+[![](https://img.shields.io/badge/license-GPL%20v3.0-blue)](https://github.com/qtc-de/webshell-cli/blob/master/LICENSE)
 
 
 

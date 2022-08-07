@@ -6,6 +6,16 @@ This document specifies the requirements a webshell needs to implement to be com
 with *webshell-cli*.
 
 
+### pattern
+
+----
+
+*webshell-cli* includes a parameter within name `pattern` in each request. The webshell
+on the server side is expected to return the result of a *webshell-cli* call enclosed
+within this pattern (`<pattern><result><pattern>`). This allows *webshell-cli* to find
+the shell output, even if other data is contained within the response.
+
+
 ### chdir
 
 ----

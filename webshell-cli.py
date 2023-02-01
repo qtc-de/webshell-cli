@@ -15,13 +15,14 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.shell import BashLexer, BatchLexer
 from prompt_toolkit.history import History, InMemoryHistory, FileHistory
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 
 style = Style.from_dict({
-                          'username':   '#33cc33',
-                          'host':       '#33cc33',
-                          'path':       '#666699',
-                        })
+    'username':   '#33cc33',
+    'host':       '#33cc33',
+    'path':       '#666699',
+})
 
 
 class InternalError(Exception):
@@ -140,13 +141,18 @@ def print_help() -> None:
     print('')
     print('    <cmd>'.ljust(offset), 'execute the specified command')
     print('    cd <dir>'.ljust(offset), 'change the current working directory')
-    print('    !background <cmd>'.ljust(offset), 'execute the specified command in the background')
-    print('    !download <rfile> [<lfile>]'.ljust(offset), 'download a remote file from the server')
-    print('    !upload <lfile> [<rfile>]'.ljust(offset), 'upload a local file to the server')
+    print('    !background <cmd>'.ljust(offset),
+          'execute the specified command in the background')
+    print('    !download <rfile> [<lfile>]'.ljust(
+        offset), 'download a remote file from the server')
+    print('    !upload <lfile> [<rfile>]'.ljust(
+        offset), 'upload a local file to the server')
     print('    !get <rfile> [<lfile>]'.ljust(offset), 'alias for download')
     print('    !put <lfile> [<rfile>]'.ljust(offset), 'alias for upload')
-    print('    !eval <lfile>'.ljust(offset), 'evaluate a local file on the server (only when php)')
-    print('    !env [<var>=<val>]'.ljust(offset), 'set an environment variable')
+    print('    !eval <lfile>'.ljust(offset),
+          'evaluate a local file on the server (only when php)')
+    print('    !env [<var>=<val>]'.ljust(
+        offset), 'set an environment variable')
     print('    !help'.ljust(offset), 'show this help menu')
 
 
@@ -238,10 +244,14 @@ class Webshell:
         self.path_func = None
 
         self.pattern = pattern if pattern is not None else uuid.uuid4().hex
-        self.regex = re.compile(re.escape(self.pattern) + '(.+)' + re.escape(self.pattern))
+        self.regex = re.compile(
+            re.escape(self.pattern) + '(.+)' + re.escape(self.pattern))
+
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.session = requests.Session()
-
+        self.session.headers.update(
+            {'User-Agent': 'Mozilla/5.0 (Linux; Android 11; 21061119AG Build/RP1A.200720.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36'})
         if username is not None and password is not None:
             self.session.auth = (username, password)
 
@@ -253,7 +263,8 @@ class Webshell:
                 self.session.headers.update({key: value.strip()})
 
         except ValueError:
-            raise InvalidHeaderException(f'The specified header value {header} is invalid.')
+            raise InvalidHeaderException(
+                f'The specified header value {header} is invalid.')
 
         self.init()
 
@@ -268,14 +279,15 @@ class Webshell:
             None
         '''
         data = {
-                 Webshell.action: Webshell.init_action,
-                 Webshell.pattern: self.pattern,
-               }
+            Webshell.action: Webshell.init_action,
+            Webshell.pattern: self.pattern,
+        }
 
-        response = self.session.post(self.url, data=data)
+        response = self.session.post(self.url, data=data, verify=False)
         result = self.get_response(response, 'init')
 
-        sep, self.type, self.user, self.host, self.path = self.get_values(result, 5, True, False)
+        sep, self.type, self.user, self.host, self.path = self.get_values(
+            result, 5, True, False)
 
         if sep == '\\':
             self.posix = False
@@ -367,31 +379,33 @@ class Webshell:
             result          Command result (if background was not used)
         '''
         data = {
-                 Webshell.action: Webshell.cmd_action,
-                 Webshell.back_param: background,
-                 Webshell.cmd_param: b64(f'{self.shell}{cmd}'),
-                 Webshell.chdir_param: b64(self.path),
-                 Webshell.env_param: self.get_env(),
-                 Webshell.pattern: self.pattern,
-               }
+            Webshell.action: Webshell.cmd_action,
+            Webshell.back_param: background,
+            Webshell.cmd_param: b64(f'{self.shell}{cmd}'),
+            Webshell.chdir_param: b64(self.path),
+            Webshell.env_param: self.get_env(),
+            Webshell.pattern: self.pattern,
+        }
 
         if background:
 
             if not cmd.startswith('!background'):
-                raise InternalError('background was called despite !background not used.')
+                raise InternalError(
+                    'background was called despite !background not used.')
 
             _, cmd = cmd.split(' ', 1)
             data[Webshell.cmd_param] = b64(f'{self.shell}{cmd}')
 
             try:
-                self.session.post(self.url, data=data, timeout=0.0000000001)
+                self.session.post(self.url, data=data,
+                                  timeout=0.0000000001, verify=False)
 
             except requests.exceptions.ReadTimeout:
                 pass
 
         else:
 
-            response = self.session.post(self.url, data=data)
+            response = self.session.post(self.url, data=data, verify=False)
             result = self.get_response(response, 'issue_command')
 
             result, self.path = self.get_values(result, 2, True)
@@ -426,14 +440,14 @@ class Webshell:
             return f'[-] Unable to read local file {path.absolute()}.'
 
         data = {
-                 Webshell.action: Webshell.eval_action,
-                 Webshell.chdir_param: b64(self.path),
-                 Webshell.env_param: self.get_env(),
-                 Webshell.upload_param: b64(content),
-                 Webshell.pattern: self.pattern,
-               }
+            Webshell.action: Webshell.eval_action,
+            Webshell.chdir_param: b64(self.path),
+            Webshell.env_param: self.get_env(),
+            Webshell.upload_param: b64(content),
+            Webshell.pattern: self.pattern,
+        }
 
-        response = self.session.post(self.url, data=data)
+        response = self.session.post(self.url, data=data, verify=False)
         self.get_response(response, 'eval')
 
         return f'[+] {path.absolute()} was evaluated by the server.'
@@ -451,7 +465,8 @@ class Webshell:
             cwd             Current working directory on the server side
         '''
         if not cmd.startswith('cd'):
-            raise InternalError('change_directory was called despite cd not used.')
+            raise InternalError(
+                'change_directory was called despite cd not used.')
 
         try:
             _, path = cmd.split(' ', 1)
@@ -463,11 +478,11 @@ class Webshell:
             path = self.path.joinpath(path)
 
         data = {
-                 Webshell.chdir_param: b64(normpath(path)),
-                 Webshell.pattern: self.pattern,
-               }
+            Webshell.chdir_param: b64(normpath(path)),
+            Webshell.pattern: self.pattern,
+        }
 
-        response = self.session.post(self.url, data=data)
+        response = self.session.post(self.url, data=data, verify=False)
         result = self.get_response(response, 'change_directory')
 
         self.path = self.get_values(result, 1, True)[0]
@@ -485,7 +500,8 @@ class Webshell:
             result      Success or Failure
         '''
         if not (cmd.startswith('!upload') or cmd.startswith('!put')):
-            raise InternalError('upload_file was called despite neither !upload nor !put was used.')
+            raise InternalError(
+                'upload_file was called despite neither !upload nor !put was used.')
 
         try:
             (lfile, rfile) = self.get_files(cmd, pathlib.Path, self.path_func)
@@ -502,15 +518,15 @@ class Webshell:
         content = lfile.read_bytes()
 
         request_data = {
-                         Webshell.action: Webshell.upload_action,
-                         Webshell.upload_param: b64(content),
-                         Webshell.filename_param: b64(rfile),
-                         Webshell.chdir_param: b64(self.path),
-                         Webshell.orig_param: b64(lfile.name),
-                         Webshell.pattern: self.pattern,
-                       }
+            Webshell.action: Webshell.upload_action,
+            Webshell.upload_param: b64(content),
+            Webshell.filename_param: b64(rfile),
+            Webshell.chdir_param: b64(self.path),
+            Webshell.orig_param: b64(lfile.name),
+            Webshell.pattern: self.pattern,
+        }
 
-        response = self.session.post(self.url, data=request_data)
+        response = self.session.post(self.url, data=request_data, verify=False)
         self.get_response(response, 'upload_file')
 
         return f'[+] Uploaded {len(content)} Bytes to {rfile}'
@@ -528,7 +544,8 @@ class Webshell:
             result      Success or Failure
         '''
         if not (cmd.startswith('!download') or cmd.startswith('!get')):
-            raise InternalError('download_file was called despite neither !download nor !get was used.')
+            raise InternalError(
+                'download_file was called despite neither !download nor !get was used.')
 
         try:
             (rfile, lfile) = self.get_files(cmd, self.path_func, pathlib.Path)
@@ -540,13 +557,13 @@ class Webshell:
             rfile = self.path.joinpath(rfile)
 
         request_data = {
-                          Webshell.action: Webshell.download_action,
-                          Webshell.filename_param: b64(rfile),
-                          Webshell.chdir_param: b64(self.path),
-                          Webshell.pattern: self.pattern,
-                       }
+            Webshell.action: Webshell.download_action,
+            Webshell.filename_param: b64(rfile),
+            Webshell.chdir_param: b64(self.path),
+            Webshell.pattern: self.pattern,
+        }
 
-        response = self.session.post(self.url, data=request_data)
+        response = self.session.post(self.url, data=request_data, verify=False)
         result = self.get_response(response, 'download_file')
 
         content, _ = self.get_values(result, 2, False)
@@ -586,7 +603,8 @@ class Webshell:
         split = data.split(':')
 
         if len(split) != count:
-            raise ParameterCountException(f'Obtained an insufficient amount of parameters: {len(split)}')
+            raise ParameterCountException(
+                f'Obtained an insufficient amount of parameters: {len(split)}')
 
         for item in split:
 
@@ -626,7 +644,8 @@ class Webshell:
         result = self.regex.search(response.text)
 
         if not result:
-            raise PatternNotFoundException(f'Pattern {self.pattern} was not found in the server output.')
+            raise PatternNotFoundException(
+                f'Pattern {self.pattern} was not found in the server output.')
 
         if response.status_code == 202:
             message = b64d(result.groups(1)[0]).decode()
@@ -680,17 +699,18 @@ class Webshell:
             try:
 
                 prompt_str = [
-                                ('', '['),
-                                ('class:username', self.user),
-                                ('', '@'),
-                                ('class:host', self.host),
-                                ('', ' '),
-                                ('class:path', str(self.path)),
-                                ('', ']$ ')
-                            ]
+                    ('', '['),
+                    ('class:username', self.user),
+                    ('', '@'),
+                    ('class:host', self.host),
+                    ('', ' '),
+                    ('class:path', str(self.path)),
+                    ('', ']$ ')
+                ]
 
                 lexer = BashLexer if self.posix else BatchLexer
-                cmd = prompt(prompt_str, history=history, lexer=PygmentsLexer(lexer), style=style)
+                cmd = prompt(prompt_str, history=history,
+                             lexer=PygmentsLexer(lexer), style=style)
 
                 result = self.handle_cmd(cmd)
                 print_result(result)
@@ -699,7 +719,8 @@ class Webshell:
                 print('[-] Aborted.')
 
             except ParameterCountException:
-                print('[-] Server response contained an unexpected amount of parameters.')
+                print(
+                    '[-] Server response contained an unexpected amount of parameters.')
 
             except (ValueError, InvalidDirectoryException) as e:
                 print(f'[-] {e}')
@@ -756,15 +777,23 @@ class Webshell:
 
 history = str(pathlib.Path.home().joinpath('.webshell_cli_history'))
 
-parser = argparse.ArgumentParser(description='''webshell-cli v1.1.0 - A simple command line interface for webshells''')
+parser = argparse.ArgumentParser(
+    description='''webshell-cli v1.1.0 - A simple command line interface for webshells''')
 parser.add_argument('url', help='url of the webshell')
-parser.add_argument('-m', '--memory', action='store_true', help='use InMemoryHistory instead of FileHistory')
-parser.add_argument('-f', '--file-history', metavar='file', default=history, help=f'history file (default: {history})')
-parser.add_argument('-s', '--shell', metavar='shell', help='use the specified shell command (e.g. "powershell -c")')
-parser.add_argument('--pattern', metavar='pattern', help='pattern to identify webshell output (default: random)')
-parser.add_argument('-u', '--username', metavar='user', help='username for basic authentication')
-parser.add_argument('-p', '--password', metavar='pass', help='password for basic authentication')
-parser.add_argument('-H', '--header', metavar='header', nargs='*', default=[], help='additional HTTP headers')
+parser.add_argument('-m', '--memory', action='store_true',
+                    help='use InMemoryHistory instead of FileHistory')
+parser.add_argument('-f', '--file-history', metavar='file',
+                    default=history, help=f'history file (default: {history})')
+parser.add_argument('-s', '--shell', metavar='shell',
+                    help='use the specified shell command (e.g. "powershell -c")')
+parser.add_argument('--pattern', metavar='pattern',
+                    help='pattern to identify webshell output (default: random)')
+parser.add_argument('-u', '--username', metavar='user',
+                    help='username for basic authentication')
+parser.add_argument('-p', '--password', metavar='pass',
+                    help='password for basic authentication')
+parser.add_argument('-H', '--header', metavar='header',
+                    nargs='*', default=[], help='additional HTTP headers')
 
 args = parser.parse_args()
 check_shell(args.shell)
@@ -781,7 +810,8 @@ try:
         history = FileHistory(args.file_history)
 
     url = prepare_url(args.url)
-    webshell = Webshell(url, args.shell, args.pattern, args.username, args.password, args.header)
+    webshell = Webshell(url, args.shell, args.pattern,
+                        args.username, args.password, args.header)
     webshell.cmd_loop(history)
 
 except ServerError as e:
